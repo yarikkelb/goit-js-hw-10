@@ -1,68 +1,62 @@
-﻿import debounce from 'lodash.debounce';
-import Notiflix from 'notiflix';
-import './css/styles.css';
-import { fetchCountries } from './js/fetchCountries';
+﻿import { fetchBreeds, fetchCatByBreed } from "./cat-api";
+import './styles.css';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import SlimSelect from 'slim-select'
+import 'slim-select/dist/slimselect.css';
 
-const DEBOUNCE_DELAY = 300;
+const ref = {
+    selector: document.querySelector('.breed-select'),
+    divCatInfo: document.querySelector('.cat-info'),
+    loader: document.querySelector('.loader'),
+    error: document.querySelector('.error'),
+};
+const { selector, divCatInfo, loader, error } = ref;
 
-const input = document.querySelector("#search-box");
-const list = document.querySelector(".country-list");
-const div = document.querySelector(".country-info");
+loader.classList.replace('loader', 'is-hidden');
+error.classList.add('is-hidden');
+divCatInfo.classList.add('is-hidden');
 
-let searchCountryName = '';
-
-input.addEventListener("input", debounce(onInputChange, DEBOUNCE_DELAY));
-
-function onInputChange() {
-    searchCountryName = input.value.trim();
-    if (searchCountryName === '') {
-        clearAll();
-        return;
-    } else fetchCountries(searchCountryName).then(countryNames => {
-        if (countryNames.length < 2) {
-            createCountrieCard(countryNames);
-            Notiflix.Notify.success('Here your result');
-        } else if (countryNames.length < 10 && countryNames.length > 1) {
-            createCountrieList(countryNames);
-            Notiflix.Notify.success('Here your results');
-        } else {
-            clearAll();
-            Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
-        };
-    })
-        .catch(() => {
-        clearAll();
-        Notiflix.Notify.failure('Oops, there is no country with that name.');
+let arrBreedsId = [];
+fetchBreeds()
+.then(data => {
+    data.forEach(element => {
+        arrBreedsId.push({text: element.name, value: element.id});
     });
+    new SlimSelect({
+        select: selector,
+        data: arrBreedsId
+    });
+    })
+.catch(onFetchError);
+
+selector.addEventListener('change', onSelectBreed);
+
+function onSelectBreed(event) {
+    loader.classList.replace('is-hidden', 'loader');
+    selector.classList.add('is-hidden');
+    divCatInfo.classList.add('is-hidden');
+
+    const breedId = event.currentTarget.value;
+    fetchCatByBreed(breedId)
+    .then(data => {
+        loader.classList.replace('loader', 'is-hidden');
+        selector.classList.remove('is-hidden');
+        const { url, breeds } = data[0];
+        
+        divCatInfo.innerHTML = `<div class="box-img"><img src="${url}" alt="${breeds[0].name}" width="400"/></div><div class="box"><h1>${breeds[0].name}</h1><p>${breeds[0].description}</p><p><b>Temperament:</b> ${breeds[0].temperament}</p></div>`
+        divCatInfo.classList.remove('is-hidden');
+    })
+    .catch(onFetchError);
 };
 
-function createCountrieCard(country) {
-    clearAll();
-    const c = country[0];
-    const readyCard = `<div class="country-card">
-        <div class="country-card--header">
-            <img src="${c.flags.svg}" alt="Country flag" width="55", height="35">
-            <h2 class="country-card--name"> ${c.name.official}</h2>
-        </div>
-            <p class="country-card--field">Capital: <span class="country-value">${c.capital}</span></p>
-            <p class="country-card--field">Population: <span class="country-value">${c.population}</span></p>
-            <p class="country-card--field">Languages: <span class="country-value">${Object.values(c.languages).join(',')}</span></p>
-    </div>`
-    div.innerHTML = readyCard;
-};
+function onFetchError(error) {
+    selector.classList.remove('is-hidden');
+    loader.classList.replace('loader', 'is-hidden');
 
-function createCountrieList(country) {
-    clearAll();
-    const readyList = country.map((c) => 
-        `<li class="country-list--item">
-            <img src="${c.flags.svg}" alt="Country flag" width="40", height="30">
-            <span class="country-list--name">${c.name.official}</span>
-        </li>`)
-        .join("");
-    list.insertAdjacentHTML('beforeend', readyList);
-};
-
-function clearAll() {
-  list.innerHTML = '';
-  div.innerHTML = '';
+    Notify.failure('Oops! Something went wrong! Try reloading the page or select another cat breed!', {
+        position: 'center-center',
+        timeout: 5000,
+        width: '400px',
+        fontSize: '24px'
+    });
 };
