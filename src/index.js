@@ -14,7 +14,7 @@ const { selector, divCatInfo, loader, error } = ref;
 
 loader.classList.replace('loader', 'is-hidden');
 error.classList.add('is-hidden');
-divCatInfo.classList.add('is-hidden');
+//divCatInfo.classList.add('is-hidden');
 
 let arrBreedsId = [];
 fetchBreeds()
@@ -23,13 +23,12 @@ fetchBreeds()
         arrBreedsId.push({text: element.name, value: element.id});
     });
     new SlimSelect({
-        select: selector,
+        select: '.breed-select',
+           selector,
         data: arrBreedsId
     });
     })
 .catch(onFetchError);
-
-selector.addEventListener('change', onSelectBreed);
 
 function onSelectBreed(event) {
     loader.classList.replace('is-hidden', 'loader');
@@ -44,10 +43,12 @@ function onSelectBreed(event) {
         const { url, breeds } = data[0];
         
         divCatInfo.innerHTML = `<div class="box-img"><img src="${url}" alt="${breeds[0].name}" width="400"/></div><div class="box"><h1>${breeds[0].name}</h1><p>${breeds[0].description}</p><p><b>Temperament:</b> ${breeds[0].temperament}</p></div>`
-        divCatInfo.classList.remove('is-hidden');
+        //divCatInfo.classList.remove('is-hidden');
     })
     .catch(onFetchError);
 };
+
+selector.addEventListener('change', onSelectBreed);
 
 function onFetchError(error) {
     selector.classList.remove('is-hidden');
