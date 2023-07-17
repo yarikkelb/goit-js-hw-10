@@ -6,8 +6,8 @@ import 'slim-select/dist/slimselect.css';
 
 const ref = {
     selector: document.querySelector('.breed-select'),
-    divCatInfo: document.querySelector('.cat-info'),
     loader: document.querySelector('.loader'),
+    divCatInfo: document.querySelector('.cat-info'),
     error: document.querySelector('.error'),
 };
 const { selector, divCatInfo, loader, error } = ref;

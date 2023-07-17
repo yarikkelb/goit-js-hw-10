@@ -76,10 +76,9 @@ h1 {
     flex-wrap: wrap;
     gap: 40px;
     background-color: #e5f3f2;
-    border: 2px solid #0d161b;
+   
 }
 .box-img {
-    display: flex;
     align-items: center;
 }
 .box {
